@@ -1,0 +1,48 @@
+{
+  "name": "ijob",
+  "version": "0.0.3",
+  "description": "Create asynchronous job that can be cancelled during executing",
+  "main": "dist/index.js",
+  "types": "src/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "babel src --out-dir dist --source-maps --ignore '**/*.test.js'",
+    "_publish": "npm run test && npm run build && npm publish"
+  },
+  "bugs": {
+    "url": "https://github.com/linq2js/ijob/issues"
+  },
+  "homepage": "https://github.com/linq2js/ijob#readme",
+  "keywords": [
+    "cancel",
+    "cancellable",
+    "promise",
+    "nested function"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "iscope": "^0.0.5"
+  },
+  "peerDependencies": {},
+  "jest": {
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5",
+    "cross-env": "^7.0.2",
+    "@types/jest": "^25.2.3",
+    "jest": "^26.0.1",
+    "babel-jest": "^26.0.1",
+    "@babel/cli": "^7.10.1",
+    "@babel/core": "^7.7.7",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "@babel/plugin-transform-modules-commonjs": "^7.7.5",
+    "@babel/preset-env": "^7.7.7",
+    "@babel/runtime": "^7.7.7",
+    "iscope": "^0.0.5"
+  }
+}
