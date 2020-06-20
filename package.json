@@ -1,6 +1,6 @@
 {
   "name": "ijob",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Create asynchronous job that can be cancelled during executing",
   "main": "dist/index.js",
   "types": "src/index.d.ts",

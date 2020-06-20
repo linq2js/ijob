@@ -108,13 +108,14 @@ export default function ijob(func) {
               if (r.done) {
                 return r.value;
               }
+              if (r.value) {
+                if (!Array.isArray(r.value)) {
+                  throw new Error('A "yield expression" should be Array');
+                }
 
-              if (!Array.isArray(r.value)) {
-                throw new Error('A "yield expression" should be Array');
+                const [f, ...args] = r.value;
+                lastValue = await f(...args);
               }
-
-              const [f, ...args] = r.value;
-              lastValue = await f(...args);
             }
           }
 
