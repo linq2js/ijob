@@ -3,12 +3,6 @@ import iscope from 'iscope';
 const jobScope = iscope(() => null);
 const noop = () => {};
 
-if (typeof Function.prototype.isGenerator == 'undefined') {
-  Function.prototype.isGenerator = function () {
-    return /^function\s*\*/.test(this.toString());
-  };
-}
-
 export default function ijob(func) {
   if (!arguments.length) {
     return jobScope() || undefined;
@@ -168,35 +162,74 @@ function createEmitter() {
   };
 }
 
-Object.assign(ijob, {
-  latest(f) {
-    let last;
-    return (...args) => {
-      if (last) {
-        last.catch(noop);
-        last.cancel();
+function enableSubscriptionLogic(f) {
+  let lastResult;
+  const emitter = createEmitter();
+  return Object.assign(
+    (...args) => {
+      const promise = (lastResult = f(...args));
+      if (promise) {
+        emitter.emit('change', {state: 'loading'});
+        promise.then(
+          (payload) =>
+            emitter.emit('change', {state: 'hasValue', value: payload}),
+          (error) =>
+            !(error instanceof CancelError) &&
+            emitter.emit('change', {state: 'hasError', error}),
+        );
       }
-      return (last = createJobWithArgs(f, args));
-    };
+
+      return lastResult;
+    },
+    {
+      subscribe(subscription) {
+        return emitter.on('change', subscription);
+      },
+      __emitCancel() {
+        emitter.emit('change', {state: 'cancelled'});
+      },
+    },
+  );
+}
+
+Object.assign(ijob, {
+  func(f) {
+    return enableSubscriptionLogic((...args) => createJobWithArgs(f, args));
+  },
+  latest(f) {
+    let lastResult;
+    const emitter = createEmitter();
+    const wrappedFunc = enableSubscriptionLogic((...args) => {
+      if (lastResult) {
+        lastResult.catch(noop);
+        lastResult.cancel();
+        wrappedFunc.__emitCancel();
+      }
+
+      return (lastResult = createJobWithArgs(f, args));
+    });
+    return wrappedFunc;
   },
   throttle(ms, f) {
     let lastResult;
     let lastExecution;
-    return (...args) => {
+    return enableSubscriptionLogic((...args) => {
       const now = new Date().getTime();
       if (!lastExecution || now - lastExecution >= ms) {
         lastExecution = now;
         lastResult = createJobWithArgs(f, args);
       }
       return lastResult;
-    };
+    });
   },
   debounce(ms, f) {
     let timerId;
-    return (...args) => {
+    let lastResult;
+    return enableSubscriptionLogic((...args) => {
       clearTimeout(timerId);
-      timerId = setTimeout(() => createJobWithArgs(f, args), ms);
-    };
+      timerId = setTimeout(() => (lastResult = createJobWithArgs(f, args)), ms);
+      return lastResult;
+    });
   },
 });
 

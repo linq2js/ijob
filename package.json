@@ -1,6 +1,6 @@
 {
   "name": "ijob",
-  "version": "0.0.4",
+  "version": "0.0.8",
   "description": "Create asynchronous job that can be cancelled during executing",
   "main": "dist/index.js",
   "types": "src/index.d.ts",
@@ -43,6 +43,6 @@
     "@babel/plugin-transform-modules-commonjs": "^7.7.5",
     "@babel/preset-env": "^7.7.7",
     "@babel/runtime": "^7.7.7",
-    "iscope": "^0.0.5"
+    "istate": "^0.0.9"
   }
 }

@@ -13,10 +13,22 @@ export interface DefaultExport {
    * @param func
    */
   <T>(func: JobFunc<Promise<T>>): Job<T>;
+  func(func: Function): WrappedJob;
+  latest(func: Function): WrappedJob;
+  throttle(ms: number, func: Function): WrappedJob;
+  debounce(ms: number, func: Function): WrappedJob;
+}
 
-  latest<T extends Function>(func: T): T;
-  throttle<T extends Function>(ms: number, func: T): T;
-  debounce<T extends Function>(ms: number, func: T): T;
+export interface WrappedJob {
+  subscribe(subscription: Subscription): Unsubscribe;
+}
+
+export type Subscription = (args: ChangeArgs) => any;
+
+export interface ChangeArgs {
+  state: 'loading' | 'hasValue' | 'hasError' | 'cancelled';
+  value: any;
+  error: Error;
 }
 
 export interface JobBase {

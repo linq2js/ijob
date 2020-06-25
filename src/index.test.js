@@ -1,4 +1,5 @@
 import job, {CancelError} from 'ijob';
+import state from 'istate';
 
 const delay = (ms, value) =>
   new Promise((resolve) => setTimeout(resolve, ms, value));
@@ -85,17 +86,42 @@ test('should support async generator', async () => {
 
 test('should run latest job', async () => {
   const count = jest.fn();
-  const f = job.latest(
-    () =>
-      function* () {
-        for (let i = 0; i < 5; i++) {
-          yield [delay, 10, 1];
-          yield [count];
-        }
-      },
-  );
+  const states = [];
+  const f = job.latest(function* () {
+    for (let i = 0; i < 5; i++) {
+      yield [delay, 10, 1];
+      yield [count];
+    }
+    return 100;
+  });
+  f.subscribe((state) => states.push(state));
   f();
   f();
   await f();
   expect(count).toBeCalledTimes(5);
+  expect(states).toEqual([
+    {state: 'loading'},
+    {state: 'cancelled'},
+    {state: 'loading'},
+    {state: 'cancelled'},
+    {state: 'loading'},
+    {state: 'hasValue', value: 100},
+  ]);
+});
+
+test('job.func', async () => {
+  const CountState = state(100);
+  const Increase = () => {
+    const [count, setCount] = CountState();
+    setCount(count + 1);
+  };
+  const IncreaseAsync = job.func(async () => {
+    console.log(11);
+    await delay(200);
+    console.log(22);
+    Increase();
+  });
+  const timerId = setInterval(IncreaseAsync, 500);
+  await delay(2000);
+  clearInterval(timerId);
 });
